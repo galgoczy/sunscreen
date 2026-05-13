@@ -44,6 +44,9 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   formatDetection: { telephone: false, email: false, address: false },
+  ...(isAdsenseEnabled()
+    ? { other: { "google-adsense-account": adsense.clientId } }
+    : {}),
 };
 
 export const viewport: Viewport = {
@@ -59,11 +62,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        {isAdsenseEnabled() && (
-          <meta name="google-adsense-account" content={adsense.clientId} />
-        )}
-      </head>
       <body className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1">{children}</main>
