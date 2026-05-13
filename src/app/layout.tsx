@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SITE } from "@/lib/site";
+import { adsense, isAdsenseEnabled } from "@/lib/ads";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -57,10 +59,24 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        {isAdsenseEnabled() && (
+          <meta name="google-adsense-account" content={adsense.clientId} />
+        )}
+      </head>
       <body className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
+        {isAdsenseEnabled() && (
+          <Script
+            id="adsense-loader"
+            async
+            strategy="afterInteractive"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsense.clientId}`}
+            crossOrigin="anonymous"
+          />
+        )}
       </body>
     </html>
   );

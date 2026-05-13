@@ -43,6 +43,22 @@ After deploy:
 - Verify in [Google Search Console](https://search.google.com/search-console), submit `/sitemap.xml`.
 - Once you have 30+ days of real traffic, apply for AdSense.
 
+## Environment variables
+
+Copy `.env.example` to `.env.local` (or set them in Vercel → Settings → Environment Variables):
+
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | Canonical URLs, OG metadata, sitemap |
+| `NEXT_PUBLIC_ADSENSE_CLIENT_ID` | AdSense publisher ID (`ca-pub-…`). Leave empty until approved. |
+| `NEXT_PUBLIC_ADSENSE_HOME_SLOT` | Slot ID for the homepage unit (between tool and content) |
+| `NEXT_PUBLIC_ADSENSE_ARTICLE_SLOT` | Slot ID for the subpage in-article unit (end of article) |
+| `NEXT_PUBLIC_ADSENSE_ARTICLE_MID_SLOT` | Slot ID for the subpage in-content unit (between H2 sections) |
+
+When `NEXT_PUBLIC_ADSENSE_CLIENT_ID` is empty, ad slots render nothing in
+production (no requests to AdSense, no script loaded). In development,
+dashed-border placeholders show where the units will appear once enabled.
+
 ## Project structure
 
 - `src/app/page.tsx` — homepage (hero + tool + content + FAQ schema)

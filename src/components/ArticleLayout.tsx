@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { SubpageMeta } from "@/lib/subpages";
 import { SITE } from "@/lib/site";
+import { AdSlot } from "@/components/AdSlot";
+import { adsense } from "@/lib/ads";
 
 interface Props {
   page: SubpageMeta;
@@ -57,12 +59,29 @@ export function ArticleLayout({ page, related }: Props) {
           </p>
         </div>
 
-        {page.sections.map((s) => (
-          <section key={s.h2}>
-            <h2>{s.h2}</h2>
-            <p>{s.body}</p>
-          </section>
-        ))}
+        {page.sections.map((s, i) => {
+          const midpoint = Math.floor(page.sections.length / 2);
+          return (
+            <section key={s.h2}>
+              <h2>{s.h2}</h2>
+              <p>{s.body}</p>
+              {i === midpoint - 1 && page.sections.length >= 3 && (
+                <AdSlot
+                  slot={adsense.articleMidSlot}
+                  format="fluid"
+                  layout="in-article"
+                  label="Sponsored"
+                />
+              )}
+            </section>
+          );
+        })}
+
+        <AdSlot
+          slot={adsense.articleSlot}
+          format="auto"
+          label="Sponsored"
+        />
 
         {related.length > 0 && (
           <section className="mt-12 not-prose">

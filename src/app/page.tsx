@@ -1,8 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SunscreenTimer } from "@/components/SunscreenTimer";
+import { AdSlot } from "@/components/AdSlot";
 import { subpages } from "@/lib/subpages";
 import { SITE } from "@/lib/site";
+import { adsense } from "@/lib/ads";
 
 export const metadata: Metadata = {
   title: `${SITE.name} — ${SITE.tagline}`,
@@ -96,6 +98,10 @@ export default function HomePage() {
 
       <div className="mx-auto max-w-2xl px-4">
         <SunscreenTimer />
+      </div>
+
+      <div className="mx-auto max-w-3xl px-4">
+        <AdSlot slot={adsense.homeSlot} format="auto" label="Sponsored" />
       </div>
 
       <section className="mx-auto max-w-3xl px-4 mt-12 prose-article">
