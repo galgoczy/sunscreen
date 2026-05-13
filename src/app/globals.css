@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  background-color: #FFFBF2;
+  color: #102A43;
+}
+
+body {
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Stable space reservation for the timer card to minimize CLS */
+.timer-card-min {
+  min-height: 540px;
+}
+@media (min-width: 640px) {
+  .timer-card-min {
+    min-height: 480px;
+  }
+}
+
+.prose-article p {
+  margin-bottom: 1rem;
+  line-height: 1.7;
+  color: #334E68;
+}
+.prose-article h2 {
+  margin-top: 2.25rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #102A43;
+}
+.prose-article a {
+  color: #1565C0;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
