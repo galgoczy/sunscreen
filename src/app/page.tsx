@@ -101,7 +101,12 @@ export default function HomePage() {
       </div>
 
       <div className="mx-auto max-w-3xl px-4">
-        <AdSlot slot={adsense.homeSlot} format="auto" label="Sponsored" />
+        <AdSlot
+          slot={adsense.homeSlot}
+          format="auto"
+          label="Sponsored"
+          position="Home · between tool and content"
+        />
       </div>
 
       <section className="mx-auto max-w-3xl px-4 mt-12 prose-article">

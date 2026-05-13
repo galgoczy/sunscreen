@@ -71,6 +71,7 @@ export function ArticleLayout({ page, related }: Props) {
                   format="fluid"
                   layout="in-article"
                   label="Sponsored"
+                  position="Article · mid-content"
                 />
               )}
             </section>
@@ -81,6 +82,7 @@ export function ArticleLayout({ page, related }: Props) {
           slot={adsense.articleSlot}
           format="auto"
           label="Sponsored"
+          position="Article · end-of-content"
         />
 
         {related.length > 0 && (

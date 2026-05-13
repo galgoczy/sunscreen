@@ -9,6 +9,7 @@ interface AdSlotProps {
   layout?: string;
   className?: string;
   label?: string;
+  position?: string;
 }
 
 declare global {
@@ -23,6 +24,7 @@ export function AdSlot({
   layout,
   className = "",
   label = "Advertisement",
+  position,
 }: AdSlotProps) {
   const pushedRef = useRef(false);
   const enabled = Boolean(adsense.clientId && slot);
@@ -38,18 +40,21 @@ export function AdSlot({
   }, [enabled]);
 
   if (!enabled) {
-    if (process.env.NODE_ENV !== "production") {
-      return (
-        <div
-          aria-hidden="true"
-          className={`my-8 rounded-lg border border-dashed border-ink-mute/40 bg-cream px-4 py-6 text-center text-xs text-ink-mute ${className}`}
-        >
-          AdSense placeholder · slot &quot;{slot || "unset"}&quot; · set
-          NEXT_PUBLIC_ADSENSE_CLIENT_ID to enable
+    return (
+      <div
+        aria-hidden="true"
+        className={`my-8 flex items-center justify-center rounded-xl border border-dashed border-sun-300/70 bg-sun-50/50 px-4 py-8 ${className}`}
+      >
+        <div className="text-center">
+          <p className="text-[10px] uppercase tracking-widest text-sun-700 font-bold">
+            Ad space{position ? ` · ${position}` : ""}
+          </p>
+          <p className="mt-1 text-xs text-ink-mute">
+            Reserved for sponsored content
+          </p>
         </div>
-      );
-    }
-    return null;
+      </div>
+    );
   }
 
   return (

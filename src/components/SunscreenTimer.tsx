@@ -8,11 +8,12 @@ import {
   Spf,
   activityOptions,
   calculateReapplyMinutes,
-  formatDuration,
   skinTypeOptions,
   spfOptions,
 } from "@/lib/calculate";
 import { fetchUvIndex, getBrowserPosition } from "@/lib/uv";
+import { CountdownRing } from "./CountdownRing";
+import { SunIcon } from "./SunIcon";
 
 type LocationStatus =
   | "idle"
@@ -23,7 +24,7 @@ type LocationStatus =
   | "unavailable"
   | "error";
 
-type NotificationPermissionState = "default" | "granted" | "denied";
+type NotifPermissionState = "default" | "granted" | "denied";
 
 function loadStored<T>(key: string, fallback: T, validate: (v: unknown) => v is T): T {
   if (typeof window === "undefined") return fallback;
@@ -78,6 +79,47 @@ function playBeep(durationMs = 300, frequency = 880) {
   }
 }
 
+function PinIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M12 2.25c-3.866 0-7 3.134-7 7 0 5.25 7 12.75 7 12.75s7-7.5 7-12.75c0-3.866-3.134-7-7-7z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="9.25" r="2.5" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function RefreshIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M4 4v6h6M20 20v-6h-6M20 8a8 8 0 00-14.9 1M4 16a8 8 0 0014.9-1"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function SunscreenTimer() {
   const [skinType, setSkinType] = useState<SkinType>("III");
   const [spf, setSpf] = useState<Spf>(30);
@@ -90,14 +132,15 @@ export function SunscreenTimer() {
 
   const [endsAt, setEndsAt] = useState<number | null>(null);
   const [now, setNow] = useState<number>(Date.now());
+  const [totalSec, setTotalSec] = useState<number>(0);
   const [warned10, setWarned10] = useState(false);
   const [expired, setExpired] = useState(false);
   const [flashOnExpiry, setFlashOnExpiry] = useState(false);
 
-  const [notifPermission, setNotifPermission] = useState<NotificationPermissionState>("default");
+  const [notifPermission, setNotifPermission] = useState<NotifPermissionState>("default");
+  const [showNotifExplainer, setShowNotifExplainer] = useState(false);
 
   const hydratedRef = useRef(false);
-  // Load saved preferences after mount to avoid SSR mismatch
   useEffect(() => {
     if (hydratedRef.current) return;
     hydratedRef.current = true;
@@ -105,7 +148,7 @@ export function SunscreenTimer() {
     setSpf(loadStored<Spf>("st.spf", 30, isSpf));
     setActivity(loadStored<Activity>("st.activity", "light", isActivity));
     if (typeof window !== "undefined" && "Notification" in window) {
-      setNotifPermission(Notification.permission as NotificationPermissionState);
+      setNotifPermission(Notification.permission as NotifPermissionState);
     }
   }, []);
 
@@ -129,7 +172,6 @@ export function SunscreenTimer() {
     [skinType, spf, activity, effectiveUv]
   );
 
-  // Countdown tick
   useEffect(() => {
     if (endsAt === null) return;
     const id = window.setInterval(() => setNow(Date.now()), 1000);
@@ -148,22 +190,20 @@ export function SunscreenTimer() {
     }
   }, []);
 
-  // Notification permission requested only on Start
   const ensureNotificationPermission = useCallback(async () => {
     if (typeof window === "undefined" || !("Notification" in window)) return;
     if (Notification.permission === "default") {
       try {
         const result = await Notification.requestPermission();
-        setNotifPermission(result as NotificationPermissionState);
+        setNotifPermission(result as NotifPermissionState);
       } catch {
-        // ignore — user may have closed the prompt
+        // user dismissed — leave default
       }
     } else {
-      setNotifPermission(Notification.permission as NotificationPermissionState);
+      setNotifPermission(Notification.permission as NotifPermissionState);
     }
   }, []);
 
-  // Warning + expiry triggers
   useEffect(() => {
     if (remainingSec === null) return;
     if (!warned10 && remainingSec <= 600 && remainingSec > 0) {
@@ -194,9 +234,7 @@ export function SunscreenTimer() {
       setLocationStatus("fetching");
       const uv = await fetchUvIndex(pos.coords.latitude, pos.coords.longitude);
       setLiveUv(uv.uvi);
-      setLocationLabel(
-        `Lat ${uv.latitude.toFixed(2)}, Lon ${uv.longitude.toFixed(2)}`
-      );
+      setLocationLabel(`Lat ${uv.latitude.toFixed(2)}, Lon ${uv.longitude.toFixed(2)}`);
       setLocationStatus("ready");
       setUvSource("auto");
     } catch (err: unknown) {
@@ -208,18 +246,39 @@ export function SunscreenTimer() {
       } else {
         setLocationStatus("error");
       }
-      setUvSource("manual");
     }
   }, []);
 
-  const handleStart = useCallback(async () => {
-    await ensureNotificationPermission();
-    const ends = Date.now() + result.minutes * 60 * 1000;
-    setEndsAt(ends);
+  const beginTimer = useCallback((seconds: number) => {
+    setTotalSec(seconds);
+    setEndsAt(Date.now() + seconds * 1000);
     setNow(Date.now());
     setWarned10(false);
     setExpired(false);
-  }, [ensureNotificationPermission, result.minutes]);
+  }, []);
+
+  const handleStart = useCallback(() => {
+    const canAskForPermission =
+      typeof window !== "undefined" &&
+      "Notification" in window &&
+      Notification.permission === "default";
+    if (canAskForPermission) {
+      setShowNotifExplainer(true);
+      return;
+    }
+    beginTimer(result.minutes * 60);
+  }, [beginTimer, result.minutes]);
+
+  const handleAllowAndStart = useCallback(async () => {
+    setShowNotifExplainer(false);
+    await ensureNotificationPermission();
+    beginTimer(result.minutes * 60);
+  }, [beginTimer, ensureNotificationPermission, result.minutes]);
+
+  const handleSkipAndStart = useCallback(() => {
+    setShowNotifExplainer(false);
+    beginTimer(result.minutes * 60);
+  }, [beginTimer, result.minutes]);
 
   const handleStop = useCallback(() => {
     setEndsAt(null);
@@ -228,28 +287,23 @@ export function SunscreenTimer() {
   }, []);
 
   const handleRestart = useCallback(() => {
-    const ends = Date.now() + result.minutes * 60 * 1000;
-    setEndsAt(ends);
-    setNow(Date.now());
-    setWarned10(false);
-    setExpired(false);
-  }, [result.minutes]);
+    beginTimer(result.minutes * 60);
+  }, [beginTimer, result.minutes]);
 
   const handleSnooze = useCallback(() => {
-    const ends = Date.now() + 15 * 60 * 1000;
-    setEndsAt(ends);
-    setNow(Date.now());
-    setWarned10(false);
-    setExpired(false);
-  }, []);
+    beginTimer(15 * 60);
+  }, [beginTimer]);
 
   const isRunning = endsAt !== null && remainingSec !== null && remainingSec > 0;
   const isExpired = endsAt !== null && remainingSec === 0;
+  const isLocationBusy = locationStatus === "requesting" || locationStatus === "fetching";
+  const isLocationProblem =
+    locationStatus === "denied" || locationStatus === "unavailable" || locationStatus === "error";
 
   return (
     <section
       aria-labelledby="timer-heading"
-      className={`timer-card-min relative rounded-2xl border border-sun-100 bg-white shadow-card p-6 sm:p-8 ${
+      className={`timer-card-min relative overflow-hidden rounded-2xl border border-sun-100 bg-white shadow-card p-5 sm:p-7 ${
         flashOnExpiry ? "animate-flash" : ""
       }`}
     >
@@ -257,225 +311,322 @@ export function SunscreenTimer() {
         Sunscreen reapplication timer
       </h1>
 
-      {/* Big readout */}
-      <div className="text-center">
-        <div className="text-sm uppercase tracking-wider text-ink-mute mb-2">
-          {isRunning ? "Time until reapply" : isExpired ? "Reapply now" : "Reapply in"}
-        </div>
-        <div
-          className={`font-bold tabular-nums leading-none ${
-            isExpired ? "text-sun-800" : "text-ink"
-          } text-6xl sm:text-7xl`}
-          aria-live="polite"
-        >
-          {isRunning && remainingSec !== null
-            ? formatDuration(remainingSec)
-            : isExpired
-            ? "00:00"
-            : `${result.minutes} min`}
-        </div>
-        <p className="mt-3 text-sm text-ink-soft">
-          {effectiveUv === null
-            ? "Using the dermatologist 2-hour default (no UV data yet)."
-            : `Based on UV ${effectiveUv.toFixed(1)} — ${result.uvBucket}, ${activityOptions.find(a => a.value === activity)?.label.toLowerCase()}.`}
-        </p>
-      </div>
-
-      {/* Controls */}
-      {!isRunning && !isExpired && (
-        <div className="mt-6 grid gap-5 sm:grid-cols-2">
-          <div>
-            <label htmlFor="skin" className="block text-sm font-medium text-ink mb-1.5">
-              Skin type (Fitzpatrick)
-            </label>
-            <select
-              id="skin"
-              value={skinType}
-              onChange={(e) => setSkinType(e.target.value as SkinType)}
-              className="block w-full rounded-lg border border-ink-mute/30 bg-white px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-sun-500"
-            >
-              {skinTypeOptions.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
+      {/* === Notification permission explainer === */}
+      {showNotifExplainer ? (
+        <div className="flex flex-col items-center text-center py-4 sm:py-6">
+          <div className="w-20 h-20 rounded-full bg-sun-100 flex items-center justify-center mb-5 animate-pulseSun shadow-card">
+            <SunIcon size={44} />
           </div>
-
-          <div>
-            <label htmlFor="activity" className="block text-sm font-medium text-ink mb-1.5">
-              Activity
-            </label>
-            <select
-              id="activity"
-              value={activity}
-              onChange={(e) => setActivity(e.target.value as Activity)}
-              className="block w-full rounded-lg border border-ink-mute/30 bg-white px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-sun-500"
+          <h2 className="text-2xl font-extrabold text-ink">Go enjoy the sun</h2>
+          <p className="mt-3 text-ink-soft max-w-sm leading-relaxed">
+            Let us nudge you when it's time to reapply — so you can relax in
+            the sun instead of watching the clock. We'll send a single
+            browser notification at reapply time. No spam, no follow-ups.
+          </p>
+          <div className="mt-7 w-full max-w-sm grid gap-2">
+            <button
+              type="button"
+              onClick={handleAllowAndStart}
+              className="rounded-xl bg-sun-500 px-5 py-3.5 text-base font-bold text-white shadow-card hover:bg-sun-600 active:bg-sun-700 transition focus:outline-none focus:ring-4 focus:ring-sun-200"
             >
-              {activityOptions.map((a) => (
-                <option key={a.value} value={a.value}>
-                  {a.label}
-                </option>
-              ))}
-            </select>
+              Allow notifications & start
+            </button>
+            <button
+              type="button"
+              onClick={handleSkipAndStart}
+              className="rounded-xl bg-cream text-ink-soft px-5 py-3 text-sm font-semibold hover:bg-sun-50 transition"
+            >
+              Skip — just start the timer
+            </button>
           </div>
-
-          <div className="sm:col-span-2">
-            <span className="block text-sm font-medium text-ink mb-1.5">SPF</span>
-            <div className="grid grid-cols-5 gap-2">
-              {spfOptions.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setSpf(s)}
-                  className={`rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
-                    spf === s
-                      ? "bg-sun-500 text-white shadow-card"
-                      : "bg-sun-50 text-ink hover:bg-sun-100"
-                  }`}
-                  aria-pressed={spf === s}
-                >
-                  {s === 100 ? "100+" : s}
-                </button>
-              ))}
+        </div>
+      ) : (
+        <>
+          {/* === Big number readout (idle) or Ring (running/expired) === */}
+          {isRunning || isExpired ? (
+            <div className="mt-2 mb-2">
+              <CountdownRing
+                remainingSec={remainingSec ?? 0}
+                totalSec={totalSec}
+                expired={isExpired}
+              />
+              {!isExpired && (
+                <p className="text-center mt-3 text-xs text-ink-mute">
+                  {effectiveUv !== null
+                    ? `UV ${effectiveUv.toFixed(1)} · ${result.uvBucket} · ${activityOptions
+                        .find((a) => a.value === activity)
+                        ?.label.toLowerCase()}`
+                    : "Using the dermatologist 2-hour default"}
+                </p>
+              )}
             </div>
-          </div>
+          ) : (
+            <div className="text-center">
+              <div className="text-[11px] uppercase tracking-widest font-semibold text-ink-mute mb-2">
+                Reapply in
+              </div>
+              <div className="font-extrabold tabular-nums leading-none text-ink">
+                <span className="text-6xl sm:text-7xl">{result.minutes}</span>
+                <span className="text-3xl sm:text-4xl text-ink-soft ml-2">min</span>
+              </div>
+              <p className="mt-3 text-sm text-ink-soft">
+                {effectiveUv === null
+                  ? "Using the dermatologist 2-hour default — use your location for a precise reading."
+                  : `UV ${effectiveUv.toFixed(1)} · ${result.uvBucket} · ${activityOptions
+                      .find((a) => a.value === activity)
+                      ?.label.toLowerCase()}`}
+              </p>
+            </div>
+          )}
 
-          <div className="sm:col-span-2">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-sm font-medium text-ink">UV index</span>
+          {/* === Live UV chip (when location ready) === */}
+          {!isRunning && !isExpired && uvSource === "auto" && liveUv !== null && locationStatus === "ready" && (
+            <div className="mt-5 rounded-xl bg-sky-50 border border-sky-200 px-4 py-3 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-[10px] uppercase tracking-widest text-sky-700 font-bold">
+                  Live UV · your location
+                </div>
+                <div className="flex items-baseline gap-2 mt-0.5">
+                  <span className="text-3xl font-extrabold tabular-nums text-sky-900">
+                    {liveUv.toFixed(1)}
+                  </span>
+                  <span className="text-sm text-sky-700 font-semibold">
+                    {result.uvBucket}
+                  </span>
+                </div>
+                {locationLabel && (
+                  <div className="text-[11px] text-ink-mute truncate mt-0.5">
+                    {locationLabel}
+                  </div>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={handleUseLocation}
-                disabled={locationStatus === "requesting" || locationStatus === "fetching"}
-                className="text-xs font-medium text-sky-700 hover:text-sky-800 disabled:opacity-50"
+                disabled={isLocationBusy}
+                className="flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-100 disabled:opacity-60 transition border border-sky-200"
               >
-                {locationStatus === "requesting"
-                  ? "Requesting…"
-                  : locationStatus === "fetching"
-                  ? "Fetching UV…"
-                  : locationStatus === "ready"
-                  ? "Refresh"
-                  : "Use my location"}
+                <RefreshIcon />
+                <span>Refresh</span>
               </button>
             </div>
+          )}
 
-            <div className="flex gap-2 mb-2">
+          {/* === Big location CTA (when location not yet used) === */}
+          {!isRunning && !isExpired && uvSource === "auto" && locationStatus !== "ready" && (
+            <button
+              type="button"
+              onClick={handleUseLocation}
+              disabled={isLocationBusy}
+              className="mt-5 w-full rounded-2xl bg-gradient-to-br from-sky-500 to-sky-700 text-white text-left shadow-card hover:from-sky-600 hover:to-sky-800 active:from-sky-700 active:to-sky-900 transition disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-sky-300 px-5 py-4"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex-shrink-0 w-14 h-14 rounded-full bg-white/15 flex items-center justify-center ring-1 ring-white/20">
+                  <PinIcon className="text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-lg font-extrabold leading-tight">
+                    {isLocationBusy
+                      ? locationStatus === "requesting"
+                        ? "Asking your browser…"
+                        : "Pulling live UV…"
+                      : isLocationProblem
+                      ? "Try location again"
+                      : "Calculate for where I am right now"}
+                  </div>
+                  <div className="text-sm text-sky-100 mt-0.5 leading-snug">
+                    {locationStatus === "requesting"
+                      ? "Tap allow on the browser prompt"
+                      : locationStatus === "fetching"
+                      ? "Fetching the live UV index for your spot"
+                      : locationStatus === "denied"
+                      ? "Permission denied — tap to retry, or use the slider below"
+                      : locationStatus === "unavailable"
+                      ? "Your browser doesn't support geolocation — use the slider below"
+                      : locationStatus === "error"
+                      ? "Couldn't reach the UV service — tap to retry"
+                      : "Get a live UV reading for your exact spot"}
+                  </div>
+                </div>
+                {!isLocationBusy && (
+                  <div className="flex-shrink-0 text-2xl text-white/70" aria-hidden="true">
+                    →
+                  </div>
+                )}
+              </div>
+            </button>
+          )}
+
+          {/* === Toggle to manual / back to auto === */}
+          {!isRunning && !isExpired && (
+            <div className="mt-3 text-center">
               <button
                 type="button"
-                onClick={() => setUvSource("auto")}
-                className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium ${
-                  uvSource === "auto"
-                    ? "bg-sky-100 text-sky-800 ring-1 ring-sky-300"
-                    : "bg-cream text-ink-soft"
-                }`}
+                onClick={() =>
+                  setUvSource(uvSource === "auto" ? "manual" : "auto")
+                }
+                className="text-xs text-sky-700 hover:text-sky-900 underline underline-offset-2"
               >
-                Live{liveUv !== null ? ` (${liveUv.toFixed(1)})` : ""}
-              </button>
-              <button
-                type="button"
-                onClick={() => setUvSource("manual")}
-                className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium ${
-                  uvSource === "manual"
-                    ? "bg-sky-100 text-sky-800 ring-1 ring-sky-300"
-                    : "bg-cream text-ink-soft"
-                }`}
-              >
-                Manual ({manualUv})
+                {uvSource === "auto"
+                  ? "Or set the UV index manually"
+                  : "Use my live location instead"}
               </button>
             </div>
+          )}
 
-            {uvSource === "manual" && (
+          {/* === Manual UV slider === */}
+          {!isRunning && !isExpired && uvSource === "manual" && (
+            <div className="mt-4 rounded-xl bg-cream p-4 border border-sun-100">
+              <div className="flex items-baseline justify-between mb-1.5">
+                <span className="text-sm font-semibold text-ink">
+                  Manual UV index
+                </span>
+                <span className="text-xl font-extrabold text-sky-700 tabular-nums">
+                  {manualUv}
+                </span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={12}
+                step={1}
+                value={manualUv}
+                onChange={(e) => setManualUv(Number(e.target.value))}
+                className="w-full accent-sky-600"
+                aria-label="Manual UV index"
+              />
+              <div className="flex justify-between text-[10px] text-ink-mute mt-1">
+                <span>0</span>
+                <span>3</span>
+                <span>6</span>
+                <span>9</span>
+                <span>11+</span>
+              </div>
+            </div>
+          )}
+
+          {/* === Settings (skin / activity / SPF) === */}
+          {!isRunning && !isExpired && (
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <div>
-                <input
-                  type="range"
-                  min={0}
-                  max={12}
-                  step={1}
-                  value={manualUv}
-                  onChange={(e) => setManualUv(Number(e.target.value))}
-                  aria-label="Manual UV index"
-                  className="w-full accent-sky-600"
-                />
-                <div className="flex justify-between text-xs text-ink-mute mt-1">
-                  <span>0</span>
-                  <span>3</span>
-                  <span>6</span>
-                  <span>9</span>
-                  <span>11+</span>
+                <label
+                  htmlFor="skin"
+                  className="block text-sm font-semibold text-ink mb-1.5"
+                >
+                  Skin type
+                </label>
+                <select
+                  id="skin"
+                  value={skinType}
+                  onChange={(e) => setSkinType(e.target.value as SkinType)}
+                  className="block w-full rounded-lg border border-ink-mute/30 bg-white px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-sun-500"
+                >
+                  {skinTypeOptions.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="activity"
+                  className="block text-sm font-semibold text-ink mb-1.5"
+                >
+                  Activity
+                </label>
+                <select
+                  id="activity"
+                  value={activity}
+                  onChange={(e) => setActivity(e.target.value as Activity)}
+                  className="block w-full rounded-lg border border-ink-mute/30 bg-white px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-sun-500"
+                >
+                  {activityOptions.map((a) => (
+                    <option key={a.value} value={a.value}>
+                      {a.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="sm:col-span-2">
+                <span className="block text-sm font-semibold text-ink mb-1.5">
+                  SPF
+                </span>
+                <div className="grid grid-cols-5 gap-2">
+                  {spfOptions.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setSpf(s)}
+                      className={`rounded-lg px-3 py-2.5 text-sm font-bold transition ${
+                        spf === s
+                          ? "bg-sun-500 text-white shadow-card"
+                          : "bg-sun-50 text-ink hover:bg-sun-100"
+                      }`}
+                      aria-pressed={spf === s}
+                    >
+                      {s === 100 ? "100+" : s}
+                    </button>
+                  ))}
                 </div>
               </div>
-            )}
 
-            {locationStatus === "denied" && (
-              <p className="mt-2 text-xs text-ink-soft">
-                Location denied — using manual UV. You can change this in your browser settings.
-              </p>
-            )}
-            {locationStatus === "unavailable" && (
-              <p className="mt-2 text-xs text-ink-soft">
-                Your browser doesn't support geolocation — use the manual slider.
-              </p>
-            )}
-            {locationStatus === "error" && (
-              <p className="mt-2 text-xs text-ink-soft">
-                Couldn't reach the UV service. Manual slider works fine.
-              </p>
-            )}
-            {locationStatus === "ready" && locationLabel && (
-              <p className="mt-2 text-xs text-ink-mute">{locationLabel}</p>
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={handleStart}
-            className="sm:col-span-2 mt-2 rounded-xl bg-sun-500 px-6 py-4 text-lg font-bold text-white shadow-card hover:bg-sun-600 active:bg-sun-700 transition focus:outline-none focus:ring-4 focus:ring-sun-200"
-          >
-            Start Timer
-          </button>
-        </div>
-      )}
-
-      {isRunning && (
-        <div className="mt-6 flex flex-col gap-3">
-          <button
-            type="button"
-            onClick={handleStop}
-            className="rounded-xl bg-cream text-ink-soft px-4 py-3 font-semibold hover:bg-sun-50 transition"
-          >
-            Cancel timer
-          </button>
-          {notifPermission !== "granted" && (
-            <p className="text-xs text-ink-mute text-center">
-              Tip: allow notifications so the alert still hits if this tab is in the background.
-            </p>
+              <button
+                type="button"
+                onClick={handleStart}
+                className="sm:col-span-2 mt-2 rounded-xl bg-sun-500 px-6 py-4 text-lg font-extrabold text-white shadow-card hover:bg-sun-600 active:bg-sun-700 transition focus:outline-none focus:ring-4 focus:ring-sun-200"
+              >
+                Start Timer
+              </button>
+            </div>
           )}
-        </div>
-      )}
 
-      {isExpired && (
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={handleRestart}
-            className="rounded-xl bg-sun-500 px-4 py-3 font-bold text-white shadow-card hover:bg-sun-600"
-          >
-            Reapply done — restart
-          </button>
-          <button
-            type="button"
-            onClick={handleSnooze}
-            className="rounded-xl bg-cream text-ink px-4 py-3 font-semibold hover:bg-sun-50 transition"
-          >
-            Snooze 15 min
-          </button>
-        </div>
-      )}
+          {/* === Running / Expired controls === */}
+          {isRunning && (
+            <div className="mt-6 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={handleStop}
+                className="rounded-xl bg-cream text-ink-soft px-4 py-3 font-semibold hover:bg-sun-50 transition"
+              >
+                Cancel timer
+              </button>
+              {notifPermission !== "granted" && (
+                <p className="text-[11px] text-ink-mute text-center">
+                  Tip: allow notifications next time and you can leave this
+                  tab — we'll buzz you.
+                </p>
+              )}
+            </div>
+          )}
 
-      <p className="mt-6 text-center text-xs text-ink-mute">
-        Based on the dermatologist 2-hour standard, adjusted for your conditions. Not medical advice.
-      </p>
+          {isExpired && (
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={handleRestart}
+                className="rounded-xl bg-sun-500 px-4 py-3.5 font-extrabold text-white shadow-card hover:bg-sun-600"
+              >
+                Reapply done — restart
+              </button>
+              <button
+                type="button"
+                onClick={handleSnooze}
+                className="rounded-xl bg-cream text-ink px-4 py-3.5 font-semibold hover:bg-sun-50 transition"
+              >
+                Snooze 15 min
+              </button>
+            </div>
+          )}
+
+          <p className="mt-6 text-center text-[11px] text-ink-mute">
+            Based on the dermatologist 2-hour standard, adjusted for your
+            conditions. Not medical advice.
+          </p>
+        </>
+      )}
     </section>
   );
 }

@@ -58,10 +58,20 @@ const config: Config = {
           "0%, 100%": { backgroundColor: "transparent" },
           "50%": { backgroundColor: "rgba(255,179,0,0.35)" },
         },
+        pulseRays: {
+          "0%, 100%": { transform: "scale(1)", opacity: "0.85" },
+          "50%": { transform: "scale(1.06)", opacity: "1" },
+        },
+        spinSlow: {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
       },
       animation: {
         pulseSun: "pulseSun 2.4s ease-in-out infinite",
         flash: "flash 1s ease-in-out 3",
+        pulseRays: "pulseRays 3.2s ease-in-out infinite",
+        spinSlow: "spinSlow 60s linear infinite",
       },
     },
   },
