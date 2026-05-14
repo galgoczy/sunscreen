@@ -4,45 +4,90 @@
 
 :root {
   color-scheme: light;
+  --bg-base: #FEFCF7;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 html,
 body {
-  background-color: #FFFBF2;
-  color: #102A43;
+  background-color: var(--bg-base);
+  color: #0F172A;
 }
 
 body {
-  font-feature-settings: "ss01", "cv11";
+  font-feature-settings: "ss01", "cv11", "cv02";
+  font-variation-settings: "opsz" 16;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Decorative warm gradient mesh behind everything */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 50% at 100% 0%, rgba(253, 230, 138, 0.55) 0%, transparent 70%),
+    radial-gradient(50% 40% at 0% 10%, rgba(254, 215, 170, 0.45) 0%, transparent 70%),
+    radial-gradient(80% 60% at 50% 100%, rgba(255, 247, 237, 0.6) 0%, transparent 70%);
+}
+
+::selection {
+  background: #FDE68A;
+  color: #78350F;
 }
 
 /* Stable space reservation for the timer card to minimize CLS */
 .timer-card-min {
-  min-height: 540px;
+  min-height: 560px;
 }
 @media (min-width: 640px) {
   .timer-card-min {
-    min-height: 480px;
+    min-height: 500px;
   }
 }
 
 .prose-article p {
   margin-bottom: 1rem;
-  line-height: 1.7;
-  color: #334E68;
+  line-height: 1.75;
+  color: #334155;
+  font-size: 1rem;
 }
 .prose-article h2 {
-  margin-top: 2.25rem;
+  margin-top: 2.5rem;
   margin-bottom: 0.75rem;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #102A43;
+  font-size: 1.625rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0F172A;
 }
 .prose-article a {
-  color: #1565C0;
+  color: #B45309;
   text-decoration: underline;
   text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(180, 83, 9, 0.35);
+  transition: text-decoration-color 0.2s ease;
+}
+.prose-article a:hover {
+  text-decoration-color: rgba(180, 83, 9, 0.8);
+}
+.prose-article strong {
+  color: #0F172A;
+  font-weight: 700;
+}
+
+/* Smoother focus rings */
+*:focus-visible {
+  outline: 2px solid rgba(245, 158, 11, 0.45);
+  outline-offset: 3px;
+  border-radius: 6px;
 }

@@ -303,10 +303,14 @@ export function SunscreenTimer() {
   return (
     <section
       aria-labelledby="timer-heading"
-      className={`timer-card-min relative overflow-hidden rounded-2xl border border-sun-100 bg-white shadow-card p-5 sm:p-7 ${
+      className={`timer-card-min relative overflow-hidden rounded-[28px] border border-sun-100/80 bg-gradient-to-br from-white via-white to-sun-50/50 shadow-card p-6 sm:p-8 ${
         flashOnExpiry ? "animate-flash" : ""
       }`}
     >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-sun-300/70 to-transparent"
+      />
       <h1 id="timer-heading" className="sr-only">
         Sunscreen reapplication timer
       </h1>
@@ -314,27 +318,39 @@ export function SunscreenTimer() {
       {/* === Notification permission explainer === */}
       {showNotifExplainer ? (
         <div className="flex flex-col items-center text-center py-4 sm:py-6">
-          <div className="w-20 h-20 rounded-full bg-sun-100 flex items-center justify-center mb-5 animate-pulseSun shadow-card">
-            <SunIcon size={44} />
+          <div className="relative mb-6">
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 -m-3 rounded-full bg-gradient-to-br from-sun-300/40 to-sun-500/20 blur-xl"
+            />
+            <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-sun-100 to-sun-300 flex items-center justify-center animate-pulseSun ring-1 ring-sun-300/50 shadow-glow">
+              <SunIcon size={46} />
+            </div>
           </div>
-          <h2 className="text-2xl font-extrabold text-ink">Go enjoy the sun</h2>
+          <h2 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">
+            Go enjoy the sun
+          </h2>
           <p className="mt-3 text-ink-soft max-w-sm leading-relaxed">
             Let us nudge you when it's time to reapply — so you can relax in
-            the sun instead of watching the clock. We'll send a single
-            browser notification at reapply time. No spam, no follow-ups.
+            the sun instead of watching the clock. One browser notification
+            at reapply time. No spam, no follow-ups.
           </p>
-          <div className="mt-7 w-full max-w-sm grid gap-2">
+          <div className="mt-7 w-full max-w-sm grid gap-2.5">
             <button
               type="button"
               onClick={handleAllowAndStart}
-              className="rounded-xl bg-sun-500 px-5 py-3.5 text-base font-bold text-white shadow-card hover:bg-sun-600 active:bg-sun-700 transition focus:outline-none focus:ring-4 focus:ring-sun-200"
+              className="group relative rounded-2xl bg-gradient-to-b from-sun-400 to-sun-600 px-5 py-3.5 text-base font-bold text-white shadow-glow hover:from-sun-300 hover:to-sun-700 active:translate-y-px transition-all duration-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-sun-300/60 overflow-hidden"
             >
+              <span
+                aria-hidden="true"
+                className="absolute inset-x-0 top-0 h-px bg-white/60"
+              />
               Allow notifications & start
             </button>
             <button
               type="button"
               onClick={handleSkipAndStart}
-              className="rounded-xl bg-cream text-ink-soft px-5 py-3 text-sm font-semibold hover:bg-sun-50 transition"
+              className="rounded-2xl bg-white/70 backdrop-blur border border-ink-mute/15 text-ink-soft px-5 py-3 text-sm font-semibold hover:bg-white hover:text-ink transition-all"
             >
               Skip — just start the timer
             </button>
@@ -361,15 +377,19 @@ export function SunscreenTimer() {
               )}
             </div>
           ) : (
-            <div className="text-center">
-              <div className="text-[11px] uppercase tracking-widest font-semibold text-ink-mute mb-2">
+            <div className="text-center pt-1">
+              <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-ink-mute mb-3">
                 Reapply in
               </div>
-              <div className="font-extrabold tabular-nums leading-none text-ink">
-                <span className="text-6xl sm:text-7xl">{result.minutes}</span>
-                <span className="text-3xl sm:text-4xl text-ink-soft ml-2">min</span>
+              <div className="font-display font-extrabold tabular-nums leading-none tracking-tightest">
+                <span className="text-7xl sm:text-[88px] bg-gradient-to-br from-ink to-ink-soft bg-clip-text text-transparent">
+                  {result.minutes}
+                </span>
+                <span className="text-3xl sm:text-4xl text-ink-mute ml-2 font-bold">
+                  min
+                </span>
               </div>
-              <p className="mt-3 text-sm text-ink-soft">
+              <p className="mt-4 text-sm text-ink-soft max-w-xs mx-auto">
                 {effectiveUv === null
                   ? "Using the dermatologist 2-hour default — use your location for a precise reading."
                   : `UV ${effectiveUv.toFixed(1)} · ${result.uvBucket} · ${activityOptions
@@ -381,30 +401,30 @@ export function SunscreenTimer() {
 
           {/* === Live UV chip (when location ready) === */}
           {!isRunning && !isExpired && uvSource === "auto" && liveUv !== null && locationStatus === "ready" && (
-            <div className="mt-5 rounded-xl bg-sky-50 border border-sky-200 px-4 py-3 flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-widest text-sky-700 font-bold">
-                  Live UV · your location
+            <div className="mt-6 rounded-2xl bg-gradient-to-br from-sky-50 to-sky-100/60 border border-sky-200/80 px-4 py-3.5 flex items-center justify-between gap-3 shadow-soft">
+              <div className="min-w-0 flex items-center gap-3">
+                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/80 flex items-center justify-center ring-1 ring-sky-200">
+                  <span className="text-[18px]" aria-hidden="true">📍</span>
                 </div>
-                <div className="flex items-baseline gap-2 mt-0.5">
-                  <span className="text-3xl font-extrabold tabular-nums text-sky-900">
-                    {liveUv.toFixed(1)}
-                  </span>
-                  <span className="text-sm text-sky-700 font-semibold">
-                    {result.uvBucket}
-                  </span>
-                </div>
-                {locationLabel && (
-                  <div className="text-[11px] text-ink-mute truncate mt-0.5">
-                    {locationLabel}
+                <div className="min-w-0">
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-sky-700 font-bold">
+                    Live UV · your location
                   </div>
-                )}
+                  <div className="flex items-baseline gap-2 mt-0.5">
+                    <span className="text-2xl sm:text-[28px] font-extrabold tabular-nums text-sky-900 leading-none">
+                      {liveUv.toFixed(1)}
+                    </span>
+                    <span className="text-xs text-sky-700 font-semibold">
+                      {result.uvBucket}
+                    </span>
+                  </div>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={handleUseLocation}
                 disabled={isLocationBusy}
-                className="flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-100 disabled:opacity-60 transition border border-sky-200"
+                className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-sky-700 hover:bg-sky-50 hover:text-sky-900 disabled:opacity-60 transition-all border border-sky-200 shadow-soft"
               >
                 <RefreshIcon />
                 <span>Refresh</span>
@@ -418,10 +438,18 @@ export function SunscreenTimer() {
               type="button"
               onClick={handleUseLocation}
               disabled={isLocationBusy}
-              className="mt-5 w-full rounded-2xl bg-gradient-to-br from-sky-500 to-sky-700 text-white text-left shadow-card hover:from-sky-600 hover:to-sky-800 active:from-sky-700 active:to-sky-900 transition disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-sky-300 px-5 py-4"
+              className="group relative mt-6 w-full overflow-hidden rounded-2xl bg-gradient-to-br from-sky-500 via-sky-600 to-sky-800 text-white text-left shadow-[0_10px_30px_-10px_rgba(37,99,235,0.5)] hover:shadow-[0_14px_36px_-10px_rgba(37,99,235,0.6)] hover:-translate-y-px active:translate-y-0 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 focus:outline-none focus-visible:ring-4 focus-visible:ring-sky-300/60 px-5 py-4"
             >
-              <div className="flex items-center gap-4">
-                <div className="flex-shrink-0 w-14 h-14 rounded-full bg-white/15 flex items-center justify-center ring-1 ring-white/20">
+              <span
+                aria-hidden="true"
+                className="absolute inset-x-0 top-0 h-px bg-white/40"
+              />
+              <span
+                aria-hidden="true"
+                className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-white/10 blur-2xl group-hover:bg-white/20 transition-colors"
+              />
+              <div className="relative flex items-center gap-4">
+                <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center ring-1 ring-white/25 backdrop-blur-sm">
                   <PinIcon className="text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -449,7 +477,10 @@ export function SunscreenTimer() {
                   </div>
                 </div>
                 {!isLocationBusy && (
-                  <div className="flex-shrink-0 text-2xl text-white/70" aria-hidden="true">
+                  <div
+                    className="flex-shrink-0 text-2xl text-white/70 group-hover:text-white group-hover:translate-x-1 transition-all"
+                    aria-hidden="true"
+                  >
                     →
                   </div>
                 )}
@@ -476,12 +507,12 @@ export function SunscreenTimer() {
 
           {/* === Manual UV slider === */}
           {!isRunning && !isExpired && uvSource === "manual" && (
-            <div className="mt-4 rounded-xl bg-cream p-4 border border-sun-100">
-              <div className="flex items-baseline justify-between mb-1.5">
-                <span className="text-sm font-semibold text-ink">
+            <div className="mt-4 rounded-2xl bg-gradient-to-br from-sky-50 to-cream p-4 border border-sky-100">
+              <div className="flex items-baseline justify-between mb-2">
+                <span className="text-[10px] uppercase tracking-[0.18em] text-sky-700 font-bold">
                   Manual UV index
                 </span>
-                <span className="text-xl font-extrabold text-sky-700 tabular-nums">
+                <span className="text-2xl font-extrabold text-sky-800 tabular-nums leading-none">
                   {manualUv}
                 </span>
               </div>
@@ -519,7 +550,7 @@ export function SunscreenTimer() {
                   id="skin"
                   value={skinType}
                   onChange={(e) => setSkinType(e.target.value as SkinType)}
-                  className="block w-full rounded-lg border border-ink-mute/30 bg-white px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-sun-500"
+                  className="block w-full rounded-xl border border-ink-faint/40 bg-white/80 backdrop-blur-sm px-3.5 py-2.5 text-base text-ink shadow-soft hover:border-sun-300 focus:outline-none focus:border-sun-400 focus:ring-4 focus:ring-sun-200/50 transition-all appearance-none cursor-pointer"
                 >
                   {skinTypeOptions.map((s) => (
                     <option key={s.value} value={s.value}>
@@ -540,7 +571,7 @@ export function SunscreenTimer() {
                   id="activity"
                   value={activity}
                   onChange={(e) => setActivity(e.target.value as Activity)}
-                  className="block w-full rounded-lg border border-ink-mute/30 bg-white px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-sun-500"
+                  className="block w-full rounded-xl border border-ink-faint/40 bg-white/80 backdrop-blur-sm px-3.5 py-2.5 text-base text-ink shadow-soft hover:border-sun-300 focus:outline-none focus:border-sun-400 focus:ring-4 focus:ring-sun-200/50 transition-all appearance-none cursor-pointer"
                 >
                   {activityOptions.map((a) => (
                     <option key={a.value} value={a.value}>
@@ -551,22 +582,28 @@ export function SunscreenTimer() {
               </div>
 
               <div className="sm:col-span-2">
-                <span className="block text-sm font-semibold text-ink mb-1.5">
+                <span className="block text-sm font-semibold text-ink mb-2">
                   SPF
                 </span>
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-5 gap-1.5 rounded-2xl bg-cream/70 p-1 border border-sun-100/60">
                   {spfOptions.map((s) => (
                     <button
                       key={s}
                       type="button"
                       onClick={() => setSpf(s)}
-                      className={`rounded-lg px-3 py-2.5 text-sm font-bold transition ${
+                      className={`relative rounded-xl px-2 py-2.5 text-sm font-bold transition-all ${
                         spf === s
-                          ? "bg-sun-500 text-white shadow-card"
-                          : "bg-sun-50 text-ink hover:bg-sun-100"
+                          ? "bg-gradient-to-b from-sun-400 to-sun-600 text-white shadow-glow"
+                          : "text-ink-soft hover:bg-white/70 hover:text-ink"
                       }`}
                       aria-pressed={spf === s}
                     >
+                      {spf === s && (
+                        <span
+                          aria-hidden="true"
+                          className="absolute inset-x-2 top-0 h-px bg-white/50"
+                        />
+                      )}
                       {s === 100 ? "100+" : s}
                     </button>
                   ))}
@@ -576,20 +613,28 @@ export function SunscreenTimer() {
               <button
                 type="button"
                 onClick={handleStart}
-                className="sm:col-span-2 mt-2 rounded-xl bg-sun-500 px-6 py-4 text-lg font-extrabold text-white shadow-card hover:bg-sun-600 active:bg-sun-700 transition focus:outline-none focus:ring-4 focus:ring-sun-200"
+                className="group relative sm:col-span-2 mt-3 overflow-hidden rounded-2xl bg-gradient-to-b from-sun-400 to-sun-600 px-6 py-4 text-lg font-extrabold text-white shadow-glow hover:from-sun-300 hover:to-sun-700 hover:shadow-[0_12px_32px_-8px_rgba(245,158,11,0.55)] hover:-translate-y-px active:translate-y-0 active:from-sun-500 active:to-sun-700 transition-all duration-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-sun-300/60"
               >
-                Start Timer
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-0 top-0 h-px bg-white/60"
+                />
+                <span
+                  aria-hidden="true"
+                  className="absolute -top-12 -right-10 h-32 w-32 rounded-full bg-white/15 blur-2xl group-hover:bg-white/25 transition-colors"
+                />
+                <span className="relative tracking-tight">Start Timer</span>
               </button>
             </div>
           )}
 
           {/* === Running / Expired controls === */}
           {isRunning && (
-            <div className="mt-6 flex flex-col gap-2">
+            <div className="mt-6 flex flex-col gap-3">
               <button
                 type="button"
                 onClick={handleStop}
-                className="rounded-xl bg-cream text-ink-soft px-4 py-3 font-semibold hover:bg-sun-50 transition"
+                className="rounded-2xl bg-white/70 backdrop-blur border border-ink-faint/30 text-ink-soft px-4 py-3 font-semibold hover:bg-white hover:text-ink hover:border-ink-faint/50 transition-all"
               >
                 Cancel timer
               </button>
@@ -607,14 +652,18 @@ export function SunscreenTimer() {
               <button
                 type="button"
                 onClick={handleRestart}
-                className="rounded-xl bg-sun-500 px-4 py-3.5 font-extrabold text-white shadow-card hover:bg-sun-600"
+                className="group relative overflow-hidden rounded-2xl bg-gradient-to-b from-sun-400 to-sun-600 px-4 py-3.5 font-extrabold text-white shadow-glow hover:from-sun-300 hover:to-sun-700 hover:-translate-y-px active:translate-y-0 transition-all"
               >
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-0 top-0 h-px bg-white/60"
+                />
                 Reapply done — restart
               </button>
               <button
                 type="button"
                 onClick={handleSnooze}
-                className="rounded-xl bg-cream text-ink px-4 py-3.5 font-semibold hover:bg-sun-50 transition"
+                className="rounded-2xl bg-white/70 backdrop-blur border border-ink-faint/30 text-ink px-4 py-3.5 font-semibold hover:bg-white hover:border-ink-faint/50 transition-all"
               >
                 Snooze 15 min
               </button>

@@ -32,27 +32,30 @@ export function ArticleLayout({ page, related }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
 
-      <article className="mx-auto max-w-3xl px-4 pt-6 sm:pt-10 prose-article">
-        <nav aria-label="Breadcrumb" className="text-sm text-ink-mute mb-4">
-          <Link href="/" className="hover:text-ink">
+      <article className="mx-auto max-w-3xl px-4 pt-8 sm:pt-12 prose-article">
+        <nav aria-label="Breadcrumb" className="text-xs text-ink-mute mb-5 flex items-center gap-1.5">
+          <Link
+            href="/"
+            className="hover:text-ink transition-colors font-medium"
+          >
             Home
           </Link>
-          <span className="mx-2">/</span>
-          <span className="text-ink-soft">{page.title}</span>
+          <span className="text-ink-faint" aria-hidden="true">/</span>
+          <span className="text-ink-soft truncate">{page.title}</span>
         </nav>
 
-        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-ink !mb-4">
+        <h1 className="font-display text-4xl sm:text-5xl font-extrabold tracking-tightest text-ink !mb-5 leading-[1.06]">
           {page.h1}
         </h1>
-        <p className="text-lg text-ink-soft">{page.intro}</p>
+        <p className="text-lg text-ink-soft leading-relaxed">{page.intro}</p>
 
-        <div className="mt-8 rounded-xl bg-sun-50 border border-sun-200 p-4 not-prose">
-          <p className="text-sm text-ink-soft">
+        <div className="mt-9 rounded-2xl bg-gradient-to-br from-sun-50 via-sun-100/60 to-peach-50 border border-sun-200/70 p-4 sm:p-5 not-prose shadow-soft">
+          <p className="text-sm text-ink-soft leading-relaxed">
             Want a personalized reapply schedule based on your location and
             skin?{" "}
             <Link
               href="/"
-              className="font-semibold text-sun-800 underline-offset-2 hover:underline"
+              className="font-bold text-sun-800 underline underline-offset-2 decoration-sun-400 hover:decoration-sun-700 transition"
             >
               Use the smart sunscreen timer →
             </Link>
@@ -93,18 +96,28 @@ export function ArticleLayout({ page, related }: Props) {
         />
 
         {related.length > 0 && (
-          <section className="mt-12 not-prose">
-            <h2 className="text-2xl font-bold text-ink mb-4">Related guides</h2>
-            <ul className="space-y-3">
+          <section className="mt-14 not-prose">
+            <h2 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-ink mb-5">
+              Related guides
+            </h2>
+            <ul className="grid sm:grid-cols-2 gap-3">
               {related.map((r) => (
                 <li key={r.slug}>
                   <Link
                     href={`/${r.slug}`}
-                    className="text-sky-700 hover:text-sky-900 underline-offset-2 hover:underline font-medium"
+                    className="group block rounded-2xl bg-white/70 backdrop-blur-sm border border-sun-100 p-4 hover:border-sun-300 hover:bg-white hover:shadow-soft hover:-translate-y-0.5 transition-all duration-200"
                   >
-                    {r.title}
+                    <p className="font-bold text-ink group-hover:text-sun-800 transition-colors">
+                      {r.title}
+                    </p>
+                    <p className="text-sm text-ink-soft mt-1 leading-snug">
+                      {r.description}
+                    </p>
+                    <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-sun-700 group-hover:gap-2 transition-all">
+                      Read more
+                      <span aria-hidden="true">→</span>
+                    </span>
                   </Link>
-                  <p className="text-sm text-ink-soft mt-0.5">{r.description}</p>
                 </li>
               ))}
             </ul>

@@ -14,16 +14,21 @@ export function SunIcon({ size = 32, className }: SunIconProps) {
       className={className}
       aria-hidden="true"
     >
-      <circle cx="16" cy="16" r="6" fill="#FFB300" />
-      <g stroke="#FFB300" strokeWidth="2" strokeLinecap="round">
-        <line x1="16" y1="2" x2="16" y2="6" />
-        <line x1="16" y1="26" x2="16" y2="30" />
-        <line x1="2" y1="16" x2="6" y2="16" />
-        <line x1="26" y1="16" x2="30" y2="16" />
-        <line x1="6" y1="6" x2="9" y2="9" />
-        <line x1="23" y1="23" x2="26" y2="26" />
-        <line x1="6" y1="26" x2="9" y2="23" />
-        <line x1="23" y1="9" x2="26" y2="6" />
+      <circle cx="16" cy="16" r="7" fill="#F59E0B" />
+      <circle cx="14.5" cy="14.5" r="3.5" fill="#FCD34D" opacity="0.7" />
+      <g
+        stroke="#F59E0B"
+        strokeWidth="2.25"
+        strokeLinecap="round"
+      >
+        <line x1="16" y1="2.5" x2="16" y2="5.5" />
+        <line x1="16" y1="26.5" x2="16" y2="29.5" />
+        <line x1="2.5" y1="16" x2="5.5" y2="16" />
+        <line x1="26.5" y1="16" x2="29.5" y2="16" />
+        <line x1="6.5" y1="6.5" x2="8.6" y2="8.6" />
+        <line x1="23.4" y1="23.4" x2="25.5" y2="25.5" />
+        <line x1="6.5" y1="25.5" x2="8.6" y2="23.4" />
+        <line x1="23.4" y1="8.6" x2="25.5" y2="6.5" />
       </g>
     </svg>
   );

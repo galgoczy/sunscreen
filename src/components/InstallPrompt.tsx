@@ -101,39 +101,47 @@ export function InstallPrompt() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-3 pointer-events-none sm:pb-5">
-      <div className="pointer-events-auto mx-auto max-w-md rounded-2xl border border-sun-200 bg-white shadow-card overflow-hidden">
+      <div className="pointer-events-auto mx-auto max-w-md rounded-3xl border border-sun-200/70 bg-white/80 backdrop-blur-xl backdrop-saturate-150 shadow-card overflow-hidden">
         <div className="flex items-stretch">
-          <div className="bg-gradient-to-br from-sun-300 to-sun-500 flex items-center justify-center px-4">
-            <SunIcon size={36} className="animate-pulseSun" />
+          <div className="relative bg-gradient-to-br from-sun-200 via-sun-400 to-sun-600 flex items-center justify-center px-5">
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent"
+            />
+            <SunIcon size={38} className="relative animate-pulseSun" />
           </div>
           <div className="flex-1 p-3.5 pr-3">
-            <p className="text-sm font-bold text-ink leading-tight">
-              Install the Sunscreen Timer
+            <p className="text-sm font-bold text-ink leading-tight tracking-tight">
+              Install Sunscreen Timer
             </p>
             <p className="mt-1 text-xs text-ink-soft leading-snug">
               {variant === "ios"
-                ? "Add it to your home screen so you can start the timer in one tap, even with patchy beach signal."
-                : "One-tap install — runs full-screen on your home screen, even offline."}
+                ? "Add it to your home screen — one tap to start, even with patchy beach signal."
+                : "Runs full-screen on your home screen, works offline."}
             </p>
-            <div className="mt-2.5 flex items-center gap-2">
+            <div className="mt-3 flex items-center gap-2">
               {variant === "android" ? (
                 <button
                   type="button"
                   onClick={install}
-                  className="rounded-lg bg-sun-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-sun-600 transition focus:outline-none focus:ring-2 focus:ring-sun-300"
+                  className="group relative overflow-hidden rounded-xl bg-gradient-to-b from-sun-400 to-sun-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-glow hover:from-sun-300 hover:to-sun-700 transition-all focus:outline-none focus-visible:ring-4 focus-visible:ring-sun-300/60"
                 >
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-x-0 top-0 h-px bg-white/60"
+                  />
                   Install
                 </button>
               ) : (
-                <span className="text-[11px] text-ink-soft">
-                  Tap <span className="font-semibold">Share</span> →{" "}
-                  <span className="font-semibold">Add to Home Screen</span>
+                <span className="text-[11px] text-ink-soft leading-snug">
+                  Tap <span className="font-semibold text-ink">Share</span> →{" "}
+                  <span className="font-semibold text-ink">Add to Home Screen</span>
                 </span>
               )}
               <button
                 type="button"
                 onClick={dismiss}
-                className="ml-auto rounded-lg px-2 py-1.5 text-xs font-medium text-ink-mute hover:text-ink hover:bg-cream transition"
+                className="ml-auto rounded-lg px-2 py-1.5 text-xs font-medium text-ink-mute hover:text-ink hover:bg-cream transition-all"
                 aria-label="Dismiss install prompt"
               >
                 Not now
