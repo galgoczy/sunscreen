@@ -1,5 +1,6 @@
 export const adsense = {
   clientId: process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "",
+  homeTopSlot: process.env.NEXT_PUBLIC_ADSENSE_HOME_TOP_SLOT || "",
   homeSlot: process.env.NEXT_PUBLIC_ADSENSE_HOME_SLOT || "",
   homeMidSlot: process.env.NEXT_PUBLIC_ADSENSE_HOME_MID_SLOT || "",
   articleTopSlot: process.env.NEXT_PUBLIC_ADSENSE_ARTICLE_TOP_SLOT || "",

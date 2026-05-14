@@ -3,13 +3,16 @@
 import { useEffect, useRef } from "react";
 import { adsense } from "@/lib/ads";
 
+type Variant = "block" | "banner";
+
 interface AdSlotProps {
   slot: string;
-  format?: "auto" | "fluid" | "rectangle";
+  format?: "auto" | "fluid" | "rectangle" | "horizontal";
   layout?: string;
   className?: string;
   label?: string;
   position?: string;
+  variant?: Variant;
 }
 
 declare global {
@@ -25,6 +28,7 @@ export function AdSlot({
   className = "",
   label = "Advertisement",
   position,
+  variant = "block",
 }: AdSlotProps) {
   const pushedRef = useRef(false);
   const enabled = Boolean(adsense.clientId && slot);
@@ -39,32 +43,42 @@ export function AdSlot({
     }
   }, [enabled]);
 
+  const placeholderHeight = variant === "banner" ? "py-2.5 sm:py-3" : "py-8";
+  const placeholderSpacing = variant === "banner" ? "my-3" : "my-8";
+  const insMinHeight = variant === "banner" ? 60 : undefined;
+
   if (!enabled) {
     return (
       <div
         aria-hidden="true"
-        className={`my-8 flex items-center justify-center rounded-xl border border-dashed border-sun-300/70 bg-sun-50/50 px-4 py-8 ${className}`}
+        className={`${placeholderSpacing} flex items-center justify-center rounded-xl border border-dashed border-sun-300/70 bg-sun-50/50 px-4 ${placeholderHeight} ${className}`}
       >
         <div className="text-center">
           <p className="text-[10px] uppercase tracking-widest text-sun-700 font-bold">
             Ad space{position ? ` · ${position}` : ""}
           </p>
-          <p className="mt-1 text-xs text-ink-mute">
-            Reserved for sponsored content
-          </p>
+          {variant === "block" && (
+            <p className="mt-1 text-xs text-ink-mute">
+              Reserved for sponsored content
+            </p>
+          )}
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`my-8 ${className}`}>
+    <div className={`${placeholderSpacing} ${className}`}>
       <div className="text-[10px] uppercase tracking-wider text-ink-mute mb-1 text-center">
         {label}
       </div>
       <ins
         className="adsbygoogle"
-        style={{ display: "block", textAlign: "center" }}
+        style={{
+          display: "block",
+          textAlign: "center",
+          ...(insMinHeight !== undefined ? { minHeight: insMinHeight } : {}),
+        }}
         data-ad-client={adsense.clientId}
         data-ad-slot={slot}
         data-ad-format={format}

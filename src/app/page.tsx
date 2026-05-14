@@ -103,6 +103,16 @@ export default function HomePage() {
       </div>
 
       <div className="mx-auto max-w-2xl px-4">
+        <AdSlot
+          slot={adsense.homeTopSlot}
+          format="horizontal"
+          variant="banner"
+          label="Sponsored"
+          position="Home · banner above timer"
+        />
+      </div>
+
+      <div className="mx-auto max-w-2xl px-4">
         <SunscreenTimer />
       </div>
 
