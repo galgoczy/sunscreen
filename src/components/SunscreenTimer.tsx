@@ -12,6 +12,7 @@ import {
   spfOptions,
 } from "@/lib/calculate";
 import { fetchUvIndex, getBrowserPosition } from "@/lib/uv";
+import { uvLevelStyle } from "@/lib/uvStyle";
 import { CountdownRing } from "./CountdownRing";
 import { SunIcon } from "./SunIcon";
 
@@ -127,6 +128,10 @@ export function SunscreenTimer() {
   const [uvSource, setUvSource] = useState<"auto" | "manual">("auto");
   const [manualUv, setManualUv] = useState<number>(5);
   const [liveUv, setLiveUv] = useState<number | null>(null);
+  const [livePeakUv, setLivePeakUv] = useState<number | null>(null);
+  const [livePeakAtMin, setLivePeakAtMin] = useState<number | null>(null);
+  const [liveForecastSpike, setLiveForecastSpike] = useState(false);
+  const [liveForecastDip, setLiveForecastDip] = useState(false);
   const [locationStatus, setLocationStatus] = useState<LocationStatus>("idle");
   const [locationLabel, setLocationLabel] = useState<string | null>(null);
 
@@ -164,8 +169,9 @@ export function SunscreenTimer() {
 
   const effectiveUv = useMemo<number | null>(() => {
     if (uvSource === "manual") return manualUv;
-    return liveUv;
-  }, [uvSource, manualUv, liveUv]);
+    // Use the peak forecast UV (safer reapply window when UV is climbing).
+    return livePeakUv ?? liveUv;
+  }, [uvSource, manualUv, liveUv, livePeakUv]);
 
   const result: CalcResult = useMemo(
     () => calculateReapplyMinutes({ skinType, spf, activity, uvIndex: effectiveUv }),
@@ -234,6 +240,10 @@ export function SunscreenTimer() {
       setLocationStatus("fetching");
       const uv = await fetchUvIndex(pos.coords.latitude, pos.coords.longitude);
       setLiveUv(uv.uvi);
+      setLivePeakUv(uv.peakUvi);
+      setLivePeakAtMin(uv.peakAtMinutes);
+      setLiveForecastSpike(uv.forecastSpike);
+      setLiveForecastDip(uv.forecastDip);
       setLocationLabel(`Lat ${uv.latitude.toFixed(2)}, Lon ${uv.longitude.toFixed(2)}`);
       setLocationStatus("ready");
       setUvSource("auto");
@@ -255,6 +265,9 @@ export function SunscreenTimer() {
     setNow(Date.now());
     setWarned10(false);
     setExpired(false);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("st:request-install"));
+    }
   }, []);
 
   const handleStart = useCallback(() => {
@@ -400,37 +413,63 @@ export function SunscreenTimer() {
           )}
 
           {/* === Live UV chip (when location ready) === */}
-          {!isRunning && !isExpired && uvSource === "auto" && liveUv !== null && locationStatus === "ready" && (
-            <div className="mt-6 rounded-2xl bg-gradient-to-br from-sky-50 to-sky-100/60 border border-sky-200/80 px-4 py-3.5 flex items-center justify-between gap-3 shadow-soft">
-              <div className="min-w-0 flex items-center gap-3">
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/80 flex items-center justify-center ring-1 ring-sky-200">
-                  <span className="text-[18px]" aria-hidden="true">📍</span>
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[10px] uppercase tracking-[0.18em] text-sky-700 font-bold">
-                    Live UV · your location
-                  </div>
-                  <div className="flex items-baseline gap-2 mt-0.5">
-                    <span className="text-2xl sm:text-[28px] font-extrabold tabular-nums text-sky-900 leading-none">
-                      {liveUv.toFixed(1)}
-                    </span>
-                    <span className="text-xs text-sky-700 font-semibold">
-                      {result.uvBucket}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={handleUseLocation}
-                disabled={isLocationBusy}
-                className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-sky-700 hover:bg-sky-50 hover:text-sky-900 disabled:opacity-60 transition-all border border-sky-200 shadow-soft"
+          {!isRunning && !isExpired && uvSource === "auto" && liveUv !== null && locationStatus === "ready" && (() => {
+            const displayUv = livePeakUv ?? liveUv;
+            const style = uvLevelStyle(displayUv);
+            const showSpikeNote = liveForecastSpike && livePeakAtMin !== null;
+            const showDipNote = liveForecastDip && livePeakAtMin !== null;
+            return (
+              <div
+                className={`mt-6 rounded-2xl bg-gradient-to-br ${style.bg} border ${style.border} px-4 py-3.5 flex items-center justify-between gap-3 shadow-soft`}
               >
-                <RefreshIcon />
-                <span>Refresh</span>
-              </button>
-            </div>
-          )}
+                <div className="min-w-0 flex items-center gap-3">
+                  <div
+                    className={`flex-shrink-0 w-10 h-10 rounded-xl bg-white/80 flex items-center justify-center ring-1 ${style.iconRing}`}
+                  >
+                    <span className="text-[18px]" aria-hidden="true">📍</span>
+                  </div>
+                  <div className="min-w-0">
+                    <div
+                      className={`text-[10px] uppercase tracking-[0.18em] font-bold ${style.accent}`}
+                    >
+                      {showSpikeNote
+                        ? "Live UV · 2hr forecast peak"
+                        : "Live UV · your location"}
+                    </div>
+                    <div className="flex items-baseline gap-2 mt-0.5">
+                      <span
+                        className={`text-2xl sm:text-[28px] font-extrabold tabular-nums leading-none ${style.numColor}`}
+                      >
+                        {displayUv.toFixed(1)}
+                      </span>
+                      <span className={`text-xs font-semibold ${style.accent}`}>
+                        {style.bucket}
+                      </span>
+                    </div>
+                    {showSpikeNote && (
+                      <div className="text-[11px] text-ink-soft mt-1 leading-tight">
+                        Currently {liveUv.toFixed(1)} · peak in ~{livePeakAtMin} min
+                      </div>
+                    )}
+                    {showDipNote && (
+                      <div className="text-[11px] text-ink-soft mt-1 leading-tight">
+                        Currently {liveUv.toFixed(1)} · easing through the next 2 hr
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleUseLocation}
+                  disabled={isLocationBusy}
+                  className={`flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 text-xs font-semibold disabled:opacity-60 transition-all border ${style.border} shadow-soft ${style.buttonText}`}
+                >
+                  <RefreshIcon />
+                  <span>Refresh</span>
+                </button>
+              </div>
+            );
+          })()}
 
           {/* === Big location CTA (when location not yet used) === */}
           {!isRunning && !isExpired && uvSource === "auto" && locationStatus !== "ready" && (

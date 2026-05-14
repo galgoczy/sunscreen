@@ -83,62 +83,20 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppJsonLd) }}
       />
 
-      <div className="relative mx-auto max-w-3xl px-4 pt-10 sm:pt-16 pb-5">
+      <div className="relative mx-auto max-w-3xl px-4 pt-5 sm:pt-9 pb-3">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -z-10 h-72 w-72 sm:h-96 sm:w-96 rounded-full bg-gradient-to-br from-sun-200/60 via-sun-300/30 to-transparent blur-3xl"
+          className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -z-10 h-56 w-56 sm:h-80 sm:w-80 rounded-full bg-gradient-to-br from-sun-200/60 via-sun-300/30 to-transparent blur-3xl"
         />
-        <div className="flex justify-center mb-5">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/70 backdrop-blur-sm border border-sun-200/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-sun-800 shadow-soft">
-            <span
-              aria-hidden="true"
-              className="h-1.5 w-1.5 rounded-full bg-sun-500 animate-pulseSun"
-            />
-            Live UV · Personalized
-          </span>
-        </div>
-        <h1 className="text-center font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tightest text-ink leading-[1.02]">
+        <h1 className="text-center font-display text-[2.5rem] sm:text-5xl lg:text-6xl font-extrabold tracking-tightest text-ink leading-[1.04]">
           Sunscreen,{" "}
-          <span className="relative inline-block">
-            <span className="bg-gradient-to-br from-sun-500 via-sun-600 to-peach-400 bg-clip-text text-transparent">
-              on a schedule.
-            </span>
+          <span className="bg-gradient-to-br from-sun-500 via-sun-600 to-peach-400 bg-clip-text text-transparent">
+            on a schedule.
           </span>
         </h1>
-        <p className="mt-5 sm:mt-6 text-center text-base sm:text-lg text-ink-soft max-w-xl mx-auto leading-relaxed">
-          A smart sunscreen timer that pulls live UV for your spot and tells
-          you exactly when to reapply — calibrated to the dermatologist
-          two-hour standard.
-        </p>
-        <p className="mt-5 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full bg-sun-50/80 backdrop-blur-sm border border-sun-200/80 px-3.5 py-1.5 text-xs font-semibold text-sun-800 shadow-soft">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              className="h-3.5 w-3.5"
-              aria-hidden="true"
-            >
-              <rect
-                x="7"
-                y="2"
-                width="10"
-                height="20"
-                rx="2.5"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              />
-              <line
-                x1="11"
-                y1="18.5"
-                x2="13"
-                y2="18.5"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-            Install as an app — full-screen, works offline
-          </span>
+        <p className="mt-3 sm:mt-4 text-center text-sm sm:text-base text-ink-soft max-w-lg mx-auto leading-relaxed">
+          Live UV for your spot, your skin, your activity. We'll tell you
+          exactly when to reapply.
         </p>
       </div>
 

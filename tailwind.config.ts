@@ -91,6 +91,10 @@ const config: Config = {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
+        slideUp: {
+          "0%": { transform: "translateY(110%)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
       },
       animation: {
         pulseSun: "pulseSun 2.4s ease-in-out infinite",
@@ -99,6 +103,7 @@ const config: Config = {
         spinSlow: "spinSlow 90s linear infinite",
         floatY: "floatY 5s ease-in-out infinite",
         shimmer: "shimmer 2s linear infinite",
+        slideUp: "slideUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both",
       },
     },
   },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SunIcon } from "./SunIcon";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -10,7 +10,7 @@ interface BeforeInstallPromptEvent extends Event {
 
 const DISMISS_KEY = "st.installDismissed";
 const DISMISS_HOURS = 72;
-const SHOW_DELAY_MS = 6000;
+const AUTO_SHOW_DELAY_MS = 6000;
 
 function shouldRespectDismiss(): boolean {
   if (typeof window === "undefined") return true;
@@ -39,42 +39,65 @@ export function InstallPrompt() {
   const [open, setOpen] = useState(false);
   const [variant, setVariant] = useState<"android" | "ios" | null>(null);
 
+  const standaloneRef = useRef(false);
+  const variantRef = useRef<"android" | "ios" | null>(null);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const standalone =
+    standaloneRef.current =
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
-    if (standalone) return;
-    if (shouldRespectDismiss()) return;
+    if (standaloneRef.current) return;
 
     const ua = window.navigator.userAgent;
     const isIos =
       /iPhone|iPad|iPod/i.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|YaBrowser/i.test(ua);
 
+    let autoTimer: number | undefined;
+
     if (isIos) {
       setVariant("ios");
-      const id = window.setTimeout(() => setOpen(true), SHOW_DELAY_MS);
-      return () => window.clearTimeout(id);
+      variantRef.current = "ios";
+      if (!shouldRespectDismiss()) {
+        autoTimer = window.setTimeout(() => setOpen(true), AUTO_SHOW_DELAY_MS);
+      }
     }
 
-    function onBeforeInstall(e: Event) {
+    const onBeforeInstall = (e: Event) => {
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
       setVariant("android");
-      setOpen(true);
-    }
+      variantRef.current = "android";
+      if (!shouldRespectDismiss()) {
+        setOpen(true);
+      }
+    };
 
-    function onInstalled() {
+    const onInstalled = () => {
       setOpen(false);
       setDeferred(null);
-    }
+    };
 
-    window.addEventListener("beforeinstallprompt", onBeforeInstall);
+    // Explicit show — bypasses the 72h dismiss cooldown (the user just
+    // triggered a high-engagement moment, e.g. tapping Start).
+    const onExplicitRequest = () => {
+      if (standaloneRef.current) return;
+      if (!variantRef.current) return;
+      setOpen(true);
+    };
+
+    if (!isIos) {
+      window.addEventListener("beforeinstallprompt", onBeforeInstall);
+    }
     window.addEventListener("appinstalled", onInstalled);
+    window.addEventListener("st:request-install", onExplicitRequest);
+
     return () => {
+      if (autoTimer !== undefined) window.clearTimeout(autoTimer);
       window.removeEventListener("beforeinstallprompt", onBeforeInstall);
       window.removeEventListener("appinstalled", onInstalled);
+      window.removeEventListener("st:request-install", onExplicitRequest);
     };
   }, []);
 
@@ -101,7 +124,7 @@ export function InstallPrompt() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-3 pointer-events-none sm:pb-5">
-      <div className="pointer-events-auto mx-auto max-w-md rounded-3xl border border-sun-200/70 bg-white/80 backdrop-blur-xl backdrop-saturate-150 shadow-card overflow-hidden">
+      <div className="pointer-events-auto mx-auto max-w-md rounded-3xl border border-sun-200/70 bg-white/85 backdrop-blur-xl backdrop-saturate-150 shadow-card overflow-hidden animate-slideUp">
         <div className="flex items-stretch">
           <div className="relative bg-gradient-to-br from-sun-200 via-sun-400 to-sun-600 flex items-center justify-center px-5">
             <div
