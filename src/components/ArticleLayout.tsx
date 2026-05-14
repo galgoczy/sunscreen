@@ -59,6 +59,13 @@ export function ArticleLayout({ page, related }: Props) {
           </p>
         </div>
 
+        <AdSlot
+          slot={adsense.articleTopSlot}
+          format="auto"
+          label="Sponsored"
+          position="Article · top (above the fold on mobile)"
+        />
+
         {page.sections.map((s, i) => {
           const midpoint = Math.floor(page.sections.length / 2);
           return (

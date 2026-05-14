@@ -94,6 +94,12 @@ export default function HomePage() {
           Live UV index. Your skin type, activity, and SPF. A real countdown
           and a browser notification when it's time to reapply.
         </p>
+        <p className="mt-4 text-center text-xs text-ink-mute">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-sun-50 border border-sun-200 px-3 py-1 text-sun-800 font-semibold">
+            <span aria-hidden="true">📱</span>
+            <span>Tip: install it as an app — runs full-screen, even offline</span>
+          </span>
+        </p>
       </div>
 
       <div className="mx-auto max-w-2xl px-4">
@@ -192,6 +198,15 @@ export default function HomePage() {
           ))}
         </ul>
       </section>
+
+      <div className="mx-auto max-w-3xl px-4">
+        <AdSlot
+          slot={adsense.homeMidSlot}
+          format="auto"
+          label="Sponsored"
+          position="Home · between guides and FAQ"
+        />
+      </div>
 
       <section id="faq" className="mx-auto max-w-3xl px-4 mt-12 prose-article">
         <h2 className="text-2xl font-bold text-ink mb-3">

@@ -3,6 +3,9 @@ import Script from "next/script";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { Analytics } from "@/components/Analytics";
+import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import { SITE } from "@/lib/site";
 import { adsense, isAdsenseEnabled } from "@/lib/ads";
 
@@ -44,9 +47,17 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   formatDetection: { telephone: false, email: false, address: false },
-  ...(isAdsenseEnabled()
-    ? { other: { "google-adsense-account": adsense.clientId } }
-    : {}),
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: SITE.shortName,
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    ...(isAdsenseEnabled()
+      ? { "google-adsense-account": adsense.clientId }
+      : {}),
+  },
 };
 
 export const viewport: Viewport = {
@@ -66,6 +77,9 @@ export default function RootLayout({
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
+        <InstallPrompt />
+        <ServiceWorkerRegistration />
+        <Analytics />
         {isAdsenseEnabled() && (
           <Script
             id="adsense-loader"

@@ -1,4 +1,4 @@
-const DEFAULT_URL = "https://sunscreentimer.app";
+const DEFAULT_URL = "https://sunscreen.zentopia.io";
 
 function resolveSiteUrl(): string {
   const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
