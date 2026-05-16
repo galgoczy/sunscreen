@@ -69,6 +69,14 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link
+                  href="/about-the-timer"
+                  className="text-ink-soft hover:text-ink transition-colors"
+                >
+                  Methodology
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/privacy"
                   className="text-ink-soft hover:text-ink transition-colors"
                 >

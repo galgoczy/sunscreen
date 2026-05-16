@@ -190,6 +190,14 @@ export default function HomePage() {
           hours has been the standard since the 1980s, and that's what
           this timer uses.
         </p>
+        <p>
+          The full math, every multiplier, and three worked examples are on
+          the{" "}
+          <Link href="/about-the-timer">
+            methodology page
+          </Link>{" "}
+          — no black box.
+        </p>
 
         <h2>Quick guides</h2>
         <p>Specific situations, real answers:</p>
