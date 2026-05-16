@@ -1,3 +1,12 @@
+/**
+ * Shared publish/modified dates for all subpages. Per-page overrides can be added
+ * later by extending SubpageMeta; for now the corpus was authored together.
+ * datePublished feeds Article JSON-LD; dateModified should be bumped whenever
+ * content is meaningfully revised (it's a real ranking signal for freshness).
+ */
+export const SITE_PUBLISHED_AT = "2026-05-13";
+export const SITE_UPDATED_AT = "2026-05-16";
+
 export interface SubpageMeta {
   slug: string;
   title: string;

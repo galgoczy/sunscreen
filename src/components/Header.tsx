@@ -13,7 +13,7 @@ export function Header() {
           <span className="relative inline-flex items-center justify-center">
             <span
               aria-hidden="true"
-              className="absolute inset-0 rounded-full bg-sun-300/40 blur-md group-hover:bg-sun-300/60 transition-colors"
+              className="pointer-events-none absolute inset-0 rounded-full bg-sun-300/40 blur-md group-hover:bg-sun-300/60 transition-colors"
             />
             <SunIcon
               size={26}

@@ -91,3 +91,45 @@ body::before {
   outline-offset: 3px;
   border-radius: 6px;
 }
+
+/* Agent-friendly + classic UX: actionability signal on every clickable.
+   Tailwind 3 dropped cursor:pointer from the default <button> reset; we
+   put it back so vision-based agents (and humans) read the right intent. */
+button:not(:disabled),
+[role="button"]:not(:disabled),
+summary,
+[type="submit"]:not(:disabled),
+[type="button"]:not(:disabled),
+[type="reset"]:not(:disabled) {
+  cursor: pointer;
+}
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* Tables in long-form articles */
+.prose-article table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.9rem;
+}
+.prose-article th,
+.prose-article td {
+  text-align: left;
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid rgba(253, 230, 138, 0.5);
+  vertical-align: top;
+}
+.prose-article thead th {
+  background: rgba(255, 251, 235, 0.6);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #92400E;
+  font-weight: 700;
+}
+.prose-article tbody tr:last-child td {
+  border-bottom: none;
+}

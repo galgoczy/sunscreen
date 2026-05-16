@@ -334,7 +334,7 @@ export function SunscreenTimer() {
           <div className="relative mb-6">
             <div
               aria-hidden="true"
-              className="absolute inset-0 -m-3 rounded-full bg-gradient-to-br from-sun-300/40 to-sun-500/20 blur-xl"
+              className="pointer-events-none absolute inset-0 -m-3 rounded-full bg-gradient-to-br from-sun-300/40 to-sun-500/20 blur-xl"
             />
             <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-sun-100 to-sun-300 flex items-center justify-center animate-pulseSun ring-1 ring-sun-300/50 shadow-glow">
               <SunIcon size={46} />
